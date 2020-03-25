@@ -15,12 +15,21 @@
   },
   "scripts": {
     "start": "APP_ENV=local webpack --watch",
-    "fix-cs": "npx stylelint \"**/*.css\" --fix && npx eslint . --ext .js,.jsx,.ts,.tsx --fix"
+    "fix-cs": "npx stylelint \"**/*.css\" --fix && npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "devDependencies": {
+    "@babel/core": "7.9.0",
+    "@storybook/addon-actions": "5.3.17",
+    "@storybook/addon-info": "5.3.17",
+    "@storybook/addon-links": "5.3.17",
+    "@storybook/addons": "5.3.17",
+    "@storybook/preact": "5.3.17",
     "@teamsupercell/typings-for-css-modules-loader": "2.1.0",
     "@typescript-eslint/eslint-plugin": "2.24.0",
     "@typescript-eslint/parser": "2.24.0",
+    "babel-loader": "8.1.0",
     "clean-webpack-plugin": "3.0.0",
     "eslint": "6.8.0",
     "eslint-config-airbnb-typescript": "7.2.0",
@@ -28,6 +37,8 @@
     "eslint-plugin-jsx-a11y": "6.2.3",
     "eslint-plugin-react": "7.19.0",
     "eslint-plugin-react-hooks": "2.5.1",
+    "react-docgen-typescript-loader": "3.7.1",
+    "storybook-dark-mode": "0.3.1",
     "stylelint": "13.2.1",
     "stylelint-config-standard": "20.0.0",
     "stylelint-order": "4.0.0",

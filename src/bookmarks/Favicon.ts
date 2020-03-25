@@ -35,7 +35,11 @@ export default class Favicon {
     return this.defaultFavicon;
   }
 
-  private static formatLinkByDPI(dpi: number, url: string): string {
-    return `chrome://favicon/size/${Favicon.SIZE}@${dpi}x/${url}`;
+  private static formatLinkByDPI(dpi: number, bookmarkUrl: string): string {
+    if (process.env.TARGET_PLATFORM === 'chrome') {
+      return `chrome://favicon/size/${Favicon.SIZE}@${dpi}x/${bookmarkUrl}`;
+    }
+
+    return `${new URL(bookmarkUrl).origin}/favicon.ico`;
   }
 }
