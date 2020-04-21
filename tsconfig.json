@@ -2,7 +2,7 @@
   "compilerOptions": {
     "alwaysStrict": true,
     "jsx": "react",
-    "target": "es5",
+    "target": "es6",
     "module": "commonjs",
     "lib": ["dom", "es2020"],
     "jsxFactory": "h",
