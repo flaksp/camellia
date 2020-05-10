@@ -1,7 +1,7 @@
 import { Component, createRef, h } from 'preact';
-import { createPortal } from 'preact/compat';
 import * as classnames from 'classnames';
 import * as s from './FolderPopup.css';
+import * as bookmarkClasses from '../Bookmark/Bookmark.css';
 import { Folder } from '../../bookmarks/Bookmark';
 import { BookmarkList } from '../BookmarkList/BookmarkList';
 import { ClickPosition } from '../Bookmark/BookmarkFolder';
@@ -12,6 +12,7 @@ const SCREEN_EDGE_SAFE_PADDING = 16;
 interface FolderPopupProps {
   folder: Folder,
   clickPosition: ClickPosition,
+  closeAllNextPopups: (folder: Folder) => void,
 }
 
 interface PopupPlacement {
@@ -21,78 +22,72 @@ interface PopupPlacement {
 }
 
 interface FolderPopupState {
-  loaded: boolean,
+  isVisible: boolean,
   placement: PopupPlacement,
 }
 
-export const getFolderPopupAttributeId = (folder: Folder): string => `folder-popup-${folder.browserId}`;
+const calculatePopupPlacement = (
+  clickX: number,
+  clickY: number,
+  unmodifiedPopupWidth: number,
+  unmodifiedPopupHeight: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  scrollPosition: number,
+): PopupPlacement => {
+  const clickWithinViewportY = clickY - scrollPosition;
+
+  let positionX = clickX + CURSOR_PADDING;
+  let positionY = clickWithinViewportY + CURSOR_PADDING;
+
+  let adjustedHeight = null;
+
+  const isClickedInTopOfPage = clickWithinViewportY < viewportHeight / 2;
+  const willPopupFitIfPlacedUnderCursor = clickWithinViewportY + unmodifiedPopupHeight + SCREEN_EDGE_SAFE_PADDING < viewportHeight;
+  const willPopupFitIfPlacedAboveCursor = clickWithinViewportY - unmodifiedPopupHeight - SCREEN_EDGE_SAFE_PADDING > 0;
+
+  if (isClickedInTopOfPage && !willPopupFitIfPlacedUnderCursor) {
+    adjustedHeight = viewportHeight - clickWithinViewportY - SCREEN_EDGE_SAFE_PADDING;
+  } else if (!isClickedInTopOfPage && !willPopupFitIfPlacedUnderCursor) {
+    positionY = clickWithinViewportY - unmodifiedPopupHeight - CURSOR_PADDING;
+
+    if (!willPopupFitIfPlacedAboveCursor) {
+      adjustedHeight = clickWithinViewportY - SCREEN_EDGE_SAFE_PADDING;
+      positionY = clickWithinViewportY - adjustedHeight - CURSOR_PADDING;
+    }
+  }
+
+  const willPopupFitIfPlacedRightOfCursor = clickX + unmodifiedPopupWidth + SCREEN_EDGE_SAFE_PADDING < viewportWidth;
+
+  if (!willPopupFitIfPlacedRightOfCursor) {
+    positionX = clickX - unmodifiedPopupWidth - CURSOR_PADDING;
+  }
+
+  return {
+    height: adjustedHeight,
+    x: positionX,
+    y: positionY,
+  };
+};
 
 export class FolderPopup extends Component<FolderPopupProps, FolderPopupState> {
-  private static calculatePopupPlacement(
-    clickX: number,
-    clickY: number,
-    unmodifiedPopupWidth: number,
-    unmodifiedPopupHeight: number,
-    viewportWidth: number,
-    viewportHeight: number,
-    scrollPosition: number,
-  ): PopupPlacement {
-    const clickWithinViewportY = clickY - scrollPosition;
+  popupElement = createRef();
 
-    let positionX = clickX + CURSOR_PADDING;
-    let positionY = clickWithinViewportY + CURSOR_PADDING;
+  state = {
+    isVisible: false,
+    placement: {
+      height: null,
+      x: 0,
+      y: 0,
+    },
+  };
 
-    let adjustedHeight = null;
+  componentDidMount(): void {
+    console.log('Mounted popup with ID', this.props.folder.browserId);
 
-    const isClickedInTopOfPage = clickWithinViewportY < viewportHeight / 2;
-    const willPopupFitIfPlacedUnderCursor = clickWithinViewportY + unmodifiedPopupHeight + SCREEN_EDGE_SAFE_PADDING < viewportHeight;
-    const willPopupFitIfPlacedAboveCursor = clickWithinViewportY - unmodifiedPopupHeight - SCREEN_EDGE_SAFE_PADDING > 0;
+    const rect = this.popupElement.current.getBoundingClientRect();
 
-    if (isClickedInTopOfPage && !willPopupFitIfPlacedUnderCursor) {
-      adjustedHeight = viewportHeight - clickWithinViewportY - SCREEN_EDGE_SAFE_PADDING;
-    } else if (!isClickedInTopOfPage && !willPopupFitIfPlacedUnderCursor) {
-      positionY = clickWithinViewportY - unmodifiedPopupHeight - CURSOR_PADDING;
-
-      if (!willPopupFitIfPlacedAboveCursor) {
-        adjustedHeight = clickWithinViewportY - SCREEN_EDGE_SAFE_PADDING;
-        positionY = clickWithinViewportY - adjustedHeight - CURSOR_PADDING;
-      }
-    }
-
-    const willPopupFitIfPlacedRightOfCursor = clickX + unmodifiedPopupWidth + SCREEN_EDGE_SAFE_PADDING < viewportWidth;
-
-    if (!willPopupFitIfPlacedRightOfCursor) {
-      positionX = clickX - unmodifiedPopupWidth - CURSOR_PADDING;
-    }
-
-    return {
-      height: adjustedHeight,
-      x: positionX,
-      y: positionY,
-    };
-  }
-
-  private readonly popup;
-
-  constructor() {
-    super();
-
-    this.state = {
-      loaded: false,
-      placement: {
-        height: null,
-        x: 0,
-        y: 0,
-      },
-    };
-
-    this.popup = createRef();
-  }
-
-  componentDidMount() {
-    const rect = this.popup.current.getBoundingClientRect();
-
-    const calculatedPlacement = FolderPopup.calculatePopupPlacement(
+    const calculatedPlacement = calculatePopupPlacement(
       this.props.clickPosition.x,
       this.props.clickPosition.y,
       rect.width,
@@ -102,32 +97,45 @@ export class FolderPopup extends Component<FolderPopupProps, FolderPopupState> {
       document.documentElement.scrollTop,
     );
 
-    this.setState({
-      loaded: true,
-      placement: calculatedPlacement,
-    });
+    if (this.state.isVisible === false) {
+      this.setState({
+        isVisible: true,
+        placement: calculatedPlacement,
+      });
+    }
   }
 
+  handlePopupBodyClick = (event: MouseEvent) => {
+    if (!(event.target instanceof Element)) {
+      return;
+    }
+
+    const isClickedOnBookmarkItem = event.target.closest(`.${bookmarkClasses.bookmarkItem}`) !== null;
+
+    if (isClickedOnBookmarkItem) {
+      console.log('Clicked on bookmark item, aborting...');
+
+      return;
+    }
+
+    this.props.closeAllNextPopups(this.props.folder);
+  };
+
   render(props: FolderPopupProps, state: FolderPopupState) {
-    const classes = state.loaded === false
+    const classes = state.isVisible === false
       ? classnames(s.folderPopup, s.loading)
       : s.folderPopup;
 
     const height = state.placement.height === null ? 'auto' : `${state.placement.height}px`;
 
-    const popup = (
-      <div ref={this.popup} className={classes} id={getFolderPopupAttributeId(props.folder)} style={`--folder-position-x: ${state.placement.x}px; --folder-position-y: ${state.placement.y}px; --popup-height: ${height};`}>
+    return (
+      <div ref={this.popupElement} className={classes} onClick={this.handlePopupBodyClick} style={`--folder-position-x: ${state.placement.x}px; --folder-position-y: ${state.placement.y}px; --popup-height: ${height};`}>
         <h2 className={s.folderPopupTitle}>{props.folder.title}</h2>
 
         <div className={s.bookmarkListContainer}>
           <BookmarkList bookmarks={props.folder.children} />
         </div>
       </div>
-    );
-
-    return createPortal(
-      popup,
-      document.querySelector('body'),
     );
   }
 }

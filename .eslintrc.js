@@ -40,6 +40,7 @@ module.exports = {
     }],
     "react/destructuring-assignment": OFF,
     "react/no-unused-state": OFF,
+    "react/state-in-constructor": OFF,
     "react-hooks/rules-of-hooks": ERROR,
     "react-hooks/exhaustive-deps": WARN,
     "sort-keys": [WARN, "asc", {"caseSensitive": true, "natural": false, "minKeys": 2}],
