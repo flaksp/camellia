@@ -1,0 +1,17 @@
+@import "../../variables.css";
+
+.options-category {
+  all: unset;
+  display: block;
+  font-family: var(--font-family-sans-serif);
+  font-size: 1rem;
+  line-height: 32px;
+  padding: 1rem;
+}
+
+.options-category-title {
+  all: unset;
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}

@@ -24,6 +24,7 @@ const commonConfig = {
   entry: {
     background: './background.js',
     newtab: './Newtab.tsx',
+    options: './Options.tsx',
   },
   mode: 'production',
   module: {
@@ -106,6 +107,15 @@ const commonConfig = {
       filename: 'newtab.html',
       inject: 'body',
       template: './newtab.ejs',
+      templateParameters: {
+        env: process.env.APP_ENV,
+      },
+    }),
+    new HtmlWebpackPlugin({
+      chunks: ['options'],
+      filename: 'options.html',
+      inject: 'body',
+      template: './options.ejs',
       templateParameters: {
         env: process.env.APP_ENV,
       },

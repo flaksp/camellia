@@ -1,0 +1,50 @@
+.selection {
+  margin-top: 2rem;
+}
+
+.selection-label {
+  all: unset;
+  display: block;
+  line-height: 2;
+}
+
+.selection-dropdown {
+  all: unset;
+  align-items: center;
+  background-color: #f5f5f5;
+  background-image: url('../../../../node_modules/material-design-icons/navigation/svg/production/ic_arrow_drop_down_48px.svg');
+  background-position: right 8px top 8px;
+  background-repeat: no-repeat;
+  background-size: 24px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  height: 40px;
+  margin-bottom: 1rem;
+  padding-left: 8px;
+  padding-right: 48px;
+  transition: 0.5s background-color;
+  user-select: none;
+  width: 100%;
+}
+
+.selection-dropdown:not(:disabled):hover {
+  background-color: #e0e0e0;
+}
+
+.selection-dropdown:not(:disabled):active {
+  background-color: #f5f5f5;
+}
+
+.selection-dropdown:focus {
+  box-shadow: 0 0 0 var(--outline-width) var(--outline-color);
+}
+
+.selection-description {
+  all: unset;
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+}

@@ -20,23 +20,20 @@ interface NewtabProps {
   bookmarkCategories: Promise<BookmarkRootCategory[]>;
 }
 
+const backgroundWidth = Math.round(window.screen.width * window.devicePixelRatio);
+const backgroundHeight = Math.round(window.screen.height * window.devicePixelRatio);
+
 export const Newtab = (props: NewtabProps) => (
   <Fragment>
     <BookmarkBrowser bookmarkCategories={props.bookmarkCategories} />
     <BottomToolbar />
-    <BackgroundMedia>
-      <RandomUnsplashImage />
+    <BackgroundMedia height={backgroundHeight} width={backgroundWidth}>
+      <RandomUnsplashImage height={backgroundHeight} width={backgroundWidth} />
     </BackgroundMedia>
   </Fragment>
 );
 
-const root = document.querySelector('#root');
-
-if (root === null) {
-  throw new Error('Can not find #root element to initialize the app');
-}
-
 render(
   <Newtab bookmarkCategories={getTree()} />,
-  root,
+  document.getElementById('root') as Element,
 );

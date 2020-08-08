@@ -4,8 +4,21 @@ import { useState } from 'preact/hooks';
 import * as s from './BackgroundMedia.css';
 import { FourDotsAnimatedGradient } from './FourDotsAnimatedGradient';
 
+export enum BackgroundType {
+  AnimatedGradient = 'animatedGradient',
+  BackgroundImageByUrl = 'backgroundImageByUrl',
+  Unsplash = 'unsplash',
+}
+
 interface BackgroundMediaProps {
   children: VNode;
+  height: number;
+  width: number;
+}
+
+export interface BackgroundGenericProps {
+  height: number;
+  width: number;
 }
 
 interface BackgroundMediaVisibilityContext {
@@ -26,7 +39,7 @@ export const BackgroundMedia = (props: BackgroundMediaProps) => {
 
   const backgroundMedia = backgroundMediaHasError === false
     ? props.children
-    : <FourDotsAnimatedGradient />;
+    : <FourDotsAnimatedGradient height={props.height} width={props.width} />;
 
   const makeVisible = () => {
     setVisibility(true);

@@ -2,7 +2,9 @@ import {
   createRef, h,
 } from 'preact';
 import { useContext, useEffect } from 'preact/hooks';
-import { BackgroundMediaVisibility } from './BackgroundMedia';
+import {
+  BackgroundGenericProps, BackgroundMediaVisibility,
+} from './BackgroundMedia';
 import * as s from './BackgroundMedia.css';
 
 enum ProgressionDirection {
@@ -11,11 +13,6 @@ enum ProgressionDirection {
 }
 
 const getRandomDirection = (): ProgressionDirection => (Math.random() > 0.5 ? -1 : 1);
-
-const pixelRatio = window.devicePixelRatio;
-
-const canvasWidth = Math.round(window.screen.width * pixelRatio);
-const canvasHeight = Math.round(window.screen.height * pixelRatio);
 
 // based on https://codepen.io/desandro/pen/BzJkQv
 class Pixel {
@@ -82,7 +79,11 @@ class Pixel {
     }
   };
 
-  render = (ctx: CanvasRenderingContext2D) => {
+  render = (
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+  ) => {
     const hue = Math.round(this.hue);
     const { saturation } = this;
     const { brightness } = this;
@@ -97,7 +98,11 @@ class Pixel {
   };
 }
 
-const animateCanvasGradient = (canvas: HTMLCanvasElement) => {
+const animateCanvasGradient = (
+  canvas: HTMLCanvasElement,
+  canvasWidth: number,
+  canvasHeight: number,
+) => {
   const ctx = canvas.getContext('2d');
 
   if (ctx === null) {
@@ -114,7 +119,7 @@ const animateCanvasGradient = (canvas: HTMLCanvasElement) => {
   const animate = () => {
     pixels.forEach((pixel) => {
       pixel.update();
-      pixel.render(ctx);
+      pixel.render(ctx, canvasWidth, canvasHeight);
     });
 
     requestAnimationFrame(animate);
@@ -125,14 +130,20 @@ const animateCanvasGradient = (canvas: HTMLCanvasElement) => {
 
 const canvasElement = createRef();
 
-export const FourDotsAnimatedGradient = () => {
+export const FourDotsAnimatedGradient = (props: BackgroundGenericProps) => {
   const context = useContext(BackgroundMediaVisibility);
 
   useEffect(() => {
-    animateCanvasGradient(canvasElement.current);
+    animateCanvasGradient(
+      canvasElement.current,
+      props.width,
+      props.height,
+    );
 
     context.makeVisible();
+
+    // TODO: Add unmounting, it leaks memory and CPU on Options page!
   });
 
-  return <canvas ref={canvasElement} className={s.backgroundMedia} height={canvasHeight} width={canvasWidth} />;
+  return <canvas ref={canvasElement} className={s.backgroundMedia} height={props.height} width={props.width} />;
 };

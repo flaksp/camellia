@@ -1,0 +1,11 @@
+.background-preview {
+  margin-top: 2rem;
+  border-radius: 4px;
+  display: flex;
+  height: 250px;
+  width: 100%;
+  overflow: hidden;
+  background-color: grey;
+  align-items: center;
+  justify-content: center;
+}
