@@ -1,6 +1,6 @@
 import { Fragment, h, VNode } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
-import { BackgroundStoredData, getBackgroundData, setBackgroundData } from '../../../optionsManager';
+import { useState } from 'preact/hooks';
+import { BackgroundData, setBackgroundData } from '../../../optionsManager';
 import { BackgroundImage } from '../../BackgroundMedia/BackgroundImage';
 import { BackgroundMediaVisibility, BackgroundType } from '../../BackgroundMedia/BackgroundMedia';
 import { FourDotsAnimatedGradient } from '../../BackgroundMedia/FourDotsAnimatedGradient';
@@ -45,50 +45,49 @@ const isValidUrl = (string: string): boolean => {
   return url.protocol === 'http:' || url.protocol === 'https:';
 };
 
-export const BackgroundSelector = () => {
-  let backgroundData: BackgroundStoredData | undefined;
+export interface BackgroundSelectorProps {
+  backgroundData: BackgroundData
+}
 
-  useEffect(() => {
-    getBackgroundData().then((data) => {
-      backgroundData = data;
-    });
-  }, []);
-
-  const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('');
+export const BackgroundSelector = (props: BackgroundSelectorProps) => {
+  const [activeBackgroundType, setBackgroundType] = useState<BackgroundType>(props.backgroundData.activeBackgroundType);
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(props.backgroundData.backgroundImageUrl);
+  const [collapseUnsplashAttribution, setCollapseUnsplashAttribution] = useState<boolean>(props.backgroundData.collapseUnsplashAttribution);
   const [backgroundMediaHasError, loadFallbackMedia] = useState(false);
 
-  const dropdownChangeHandler = (value: string) => {
-    const type = value as BackgroundType;
+  const saveBackgroundChanges = () => {
+    setBackgroundData({
+      activeBackgroundType,
+      backgroundImageUrl,
+      collapseUnsplashAttribution,
+    });
+  };
 
-    switch (type) {
-      case BackgroundType.BackgroundImageByUrl:
-        setBackgroundData({
-          type: BackgroundType.BackgroundImageByUrl,
-          url: backgroundImageUrl,
-        });
+  const dropdownChangeHandler = async (value: string) => {
+    setBackgroundType(value as BackgroundType);
 
-        break;
+    saveBackgroundChanges();
+  };
 
-      default:
-        setBackgroundData({
-          type,
-        });
+  const wallpaperByUrlInputChangeHandler = (url: string) => {
+    setBackgroundImageUrl(url);
+    loadFallbackMedia(false);
 
-        break;
-    }
+    saveBackgroundChanges();
+  };
+
+  const showArtistAttributionCheckboxChangeHandler = (value: boolean) => {
+    setCollapseUnsplashAttribution(value);
+
+    saveBackgroundChanges();
   };
 
   let additionalForms: VNode | undefined;
   let backgroundPreview: VNode | undefined;
 
-  const inputHandler = (url: string) => {
-    setBackgroundImageUrl(url);
-    loadFallbackMedia(false);
-  };
-
-  switch (backgroundData.type) {
+  switch (activeBackgroundType) {
     case BackgroundType.BackgroundImageByUrl:
-      additionalForms = <InputField changeHandler={inputHandler} defaultValue={backgroundData.url} label="URL to image" type={InputType.Url} />;
+      additionalForms = <InputField changeHandler={wallpaperByUrlInputChangeHandler} defaultValue={backgroundImageUrl} label="URL to image" type={InputType.Url} />;
       backgroundPreview = isValidUrl(backgroundImageUrl) === true
         ? <BackgroundImage url={backgroundImageUrl} />
         : <Fragment>Enter valid URL</Fragment>;
@@ -102,7 +101,7 @@ export const BackgroundSelector = () => {
       break;
 
     case BackgroundType.Unsplash:
-      additionalForms = <Checkbox checked={false} description="Button with photographer name is always shown in the right bottom corner of Camellia, so you may always reach photographer on Unsplash to download current background or to get more from a photographer if you liked it. By default Camellia displays full attribution, but you may collapse this button to compact size using this option." disabled={false} label="Collapse photographer attribution" />;
+      additionalForms = <Checkbox changeHandler={showArtistAttributionCheckboxChangeHandler} checked={collapseUnsplashAttribution} description="Button with photographer name is always shown in the right bottom corner of Camellia, so you may always reach photographer on Unsplash to download current background or to get more from a photographer if you liked it. By default Camellia displays full attribution, but you may collapse this button to compact size using this option." disabled={false} label="Collapse photographer attribution" />;
       backgroundPreview = <RandomUnsplashImage height={250} width={400} />;
 
       break;
@@ -118,19 +117,17 @@ export const BackgroundSelector = () => {
     backgroundPreview = <Fragment>Error loading background</Fragment>;
   }
 
-  const loadDefaultBackgroundMedia = () => {
-    loadFallbackMedia(true);
-  };
-
   const context = {
     isVisible: false,
-    loadDefaultBackgroundMedia,
+    loadDefaultBackgroundMedia: () => {
+      loadFallbackMedia(true);
+    },
     makeVisible: () => {},
   };
 
   return (
     <BackgroundMediaVisibility.Provider value={context}>
-      <DropdownSelect changeHandler={dropdownChangeHandler} description="Background that will appear behind your bookmarks at new tab page. You may see preview box lower. If Camellia won't be able to load your background (e.g. because of network issues), animated gradient will be displayed instead." label="Background" options={getAvailableOptions(backgroundData.type)} />
+      <DropdownSelect changeHandler={dropdownChangeHandler} description="Background that will appear behind your bookmarks at new tab page. You may see preview box lower. If Camellia won't be able to load your background (e.g. because of network issues), animated gradient will be displayed instead." label="Background" options={getAvailableOptions(activeBackgroundType)} />
 
       {additionalForms}
 

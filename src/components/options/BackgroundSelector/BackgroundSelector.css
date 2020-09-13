@@ -1,11 +1,11 @@
 .background-preview {
-  margin-top: 2rem;
+  align-items: center;
+  background-color: grey;
   border-radius: 4px;
   display: flex;
   height: 250px;
-  width: 100%;
-  overflow: hidden;
-  background-color: grey;
-  align-items: center;
   justify-content: center;
+  margin-top: 2rem;
+  overflow: hidden;
+  width: 100%;
 }

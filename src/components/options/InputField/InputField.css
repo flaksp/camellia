@@ -34,8 +34,9 @@
   background-color: #f5f5f5;
 }
 
-.text-field__input:focus {
+.text-field__input:not(:disabled):focus {
   box-shadow: 0 0 0 var(--outline-width) var(--outline-color);
+  cursor: text;
 }
 
 .text-field__description {

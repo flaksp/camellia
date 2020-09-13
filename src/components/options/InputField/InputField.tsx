@@ -27,7 +27,7 @@ export const InputField = (props: InputFieldProps) => {
         {props.label}
       </label>
 
-      <input className={s.textFieldInput} id={inputId} onChange={handleChange} type={props.type} />
+      <input className={s.textFieldInput} id={inputId} onChange={handleChange} type={props.type} value={props.defaultValue} />
 
       {props.description !== undefined ? <p className={s.textFieldDescription}>{props.description}</p> : ''}
     </div>

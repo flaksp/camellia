@@ -6,7 +6,6 @@
   align-items: center;
   background-color: #f5f5f5;
   border-radius: 4px;
-  cursor: pointer;
   display: flex;
   font-size: 13px;
   margin-bottom: 1rem;
@@ -16,6 +15,7 @@
 
 input:not(:disabled) + .checkbox-control:hover {
   background-color: #e0e0e0;
+  cursor: pointer;
 }
 
 input:not(:disabled) + .checkbox-control:active {
